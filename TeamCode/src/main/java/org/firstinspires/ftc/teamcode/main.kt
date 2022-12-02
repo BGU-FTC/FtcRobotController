@@ -1,6 +1,12 @@
 package org.firstinspires.ftc.teamcode
 
-// IK this won't run since its not an OpMode I'll get back to this
-fun main() {
-    println("Hello world!")
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+
+@TeleOp(name="PRESS THIS K THX", group="Tests")
+class SuperEpicOpMode : LinearOpMode() {
+    override fun runOpMode() {
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+    }
 }
