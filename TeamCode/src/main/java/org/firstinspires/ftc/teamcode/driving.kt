@@ -32,6 +32,7 @@ class ControllerOpMode : LinearOpMode() {
         time.startTime()
 
         while (opModeIsActive()) {
+            caller.step()
             telemetry.addData("Time", time.seconds())
             telemetry.addData("raw",rawNumber)
             telemetry.addData("action",actionNumber)
