@@ -5,6 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.util.ElapsedTime
+import java.net.ServerSocket
 
 //val VUFORIA_KEY = "AekkZQf/////AAABmU/INTYknkiSokr0deyoE7tDO9U4n4OpK1sB67xojuUmkCjdRobDwLQmdRlNk/s8EUdYf1XlTIpkDruJVSbhm6r/LAMLjU4C4ntVOYp7stg+xAG4aoc8SaLEP4Dk+L3oDUGhPtWJWS8dB0z7XRd3ku4jDBvboBDPzR3PMgGWjedD72rr4FGk9fsuQQmbln+pHhx26g2HBttXuSBKy3vaOEuZeqKqIMA28GiPqnUflXn8rnWwWLMdcJZmMCZ7LKvZ6P7c2XtrWDTerpbCvUohB6Zpic+CoF5CjLfm5YroaZ0Rtwq6vzqm8EIJkoqgbrURWN59050Vcb7mS3oXy34PfH67BjtlihQQYv+oSbiBSY22"
 //
@@ -54,10 +57,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap
 //        }
 //    }
 //}
-
 object MovementSystem {
-    private lateinit var left: DcMotor
-    private lateinit var right: DcMotor
+    lateinit var left: DcMotor
+    lateinit var right: DcMotor
 
     fun init(hardwareMap: HardwareMap) {
         left = hardwareMap.get("left_drive") as DcMotor;
@@ -69,6 +71,38 @@ object MovementSystem {
     fun setPower(leftPower: Double, rightPower: Double) {
         left.power = leftPower.coerceIn(-1.0, 1.0)
         right.power = rightPower.coerceIn(-1.0, 1.0)
+    }
+}
+
+object LinearSlideSystem {
+    private lateinit var motor: DcMotor
+
+    fun init(hardwareMap: HardwareMap) {
+        motor = hardwareMap.get("linear_slide") as DcMotor
+    }
+
+    fun set(power: Double) {
+        motor.power = power
+    }
+}
+
+object GrabberSystem {
+    private lateinit var servo: Servo
+
+    fun init(hardwareMap: HardwareMap) {
+        servo = hardwareMap.get("grabber") as Servo
+    }
+
+    fun open() {
+        servo.position = 0.0
+    }
+
+    fun close() {
+        servo.position = 1.0
+    }
+
+    fun toggle() {
+        servo.position = 1.0 - servo.position
     }
 }
 
@@ -106,53 +140,17 @@ class MotorTestMode: LinearOpMode() {
     }
 }
 
-fun lerp(min: Double, max: Double, t: Double): Double {
-    return min + ((max - min) * t)
-}
-
-fun thetaToPower(theta: Double): Double {
-    when (theta) {
-        in 0.0..90.0 -> {
-            return 1.0
-        }
-        in 90.0..135.0 -> {
-            val t = (theta - 90.0) / 45.0;
-            return lerp(1.0, 0.0, t)
-        }
-        in 135.0..180.0 -> {
-            val t = (theta - 135.0) / 45.0
-            return lerp(0.0, -1.0, t)
-        }
-        in 180.0..225.0 -> {
-            val t = (theta - 180.0) / 45.0
-            return lerp(-1.0, 0.0, t)
-        }
-        in 225.0..270.0 -> {
-            val t = (theta - 225.0) / 45.0
-            return lerp(0.0, -1.0, t)
-        }
-        in 270.0..315.0 -> {
-            val t = (theta - 270.0) / 45.0
-            return lerp(-1.0, 0.0, t)
-        }
-        else -> {
-            val t = (theta - 315.0) / 45.0
-            return lerp(0.0, 1.0, t)
-        }
-    }
-}
-
 @TeleOp(name="Motor control test", group="Tests")
 class MotorControlTestMode: LinearOpMode() {
     override fun runOpMode() {
-        MovementSystem.init(hardwareMap);
+        MovementSystem.init(hardwareMap)
 
         telemetry.addData("Status", "Initialised")
         telemetry.update()
         waitForStart()
 
         while (true) {
-            val drive = gamepad1.left_stick_y;
+            val drive = gamepad1.left_stick_y
             val turn = gamepad1.right_stick_x
 
             val leftPower = drive - turn;
@@ -163,6 +161,46 @@ class MotorControlTestMode: LinearOpMode() {
             telemetry.addData("Left Power:", leftPower)
             telemetry.addData("Right Power:", rightPower)
             telemetry.update();
+        }
+    }
+}
+
+@TeleOp(name="Linear slide test", group="Tests")
+class LinearSlideControlTestMode: LinearOpMode() {
+    override fun runOpMode() {
+        LinearSlideSystem.init(hardwareMap)
+
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+        waitForStart()
+
+        while (true) {
+            val left = gamepad1.left_trigger.toDouble()
+            val right = gamepad1.right_trigger.toDouble()
+
+            LinearSlideSystem.set(left - right)
+        }
+    }
+}
+
+@TeleOp(name="Grabber servo test", group="Tests")
+class GrabberServerTest: LinearOpMode() {
+    override fun runOpMode() {
+        GrabberSystem.init(hardwareMap)
+
+        GrabberSystem.open()
+
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+        waitForStart()
+
+        val lastToggle = ElapsedTime()
+
+        while (true) {
+            if (gamepad1.x && lastToggle.seconds() > 1) {
+                GrabberSystem.toggle()
+                lastToggle.reset()
+            }
         }
     }
 }
