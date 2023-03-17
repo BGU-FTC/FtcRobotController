@@ -1,21 +1,10 @@
 package org.firstinspires.ftc.teamcode
 
-import android.content.Context
-import android.hardware.SensorManager
-import androidx.core.content.ContextCompat.getSystemService
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.Servo
-import com.qualcomm.robotcore.util.ElapsedTime
-import org.firstinspires.ftc.robotcore.external.ClassFactory
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer
-import kotlin.math.PI
-import kotlin.math.atan
-import kotlin.math.sqrt
 
 //val VUFORIA_KEY = "AekkZQf/////AAABmU/INTYknkiSokr0deyoE7tDO9U4n4OpK1sB67xojuUmkCjdRobDwLQmdRlNk/s8EUdYf1XlTIpkDruJVSbhm6r/LAMLjU4C4ntVOYp7stg+xAG4aoc8SaLEP4Dk+L3oDUGhPtWJWS8dB0z7XRd3ku4jDBvboBDPzR3PMgGWjedD72rr4FGk9fsuQQmbln+pHhx26g2HBttXuSBKy3vaOEuZeqKqIMA28GiPqnUflXn8rnWwWLMdcJZmMCZ7LKvZ6P7c2XtrWDTerpbCvUohB6Zpic+CoF5CjLfm5YroaZ0Rtwq6vzqm8EIJkoqgbrURWN59050Vcb7mS3oXy34PfH67BjtlihQQYv+oSbiBSY22"
 //
@@ -72,7 +61,9 @@ object MovementSystem {
 
     fun init(hardwareMap: HardwareMap) {
         left = hardwareMap.get("left_drive") as DcMotor;
-        right = hardwareMap.get("right_drive") as DcMotor;
+        right = hardwareMap.get("right_drive") as DcMotor
+
+        right.direction = DcMotorSimple.Direction.REVERSE
     }
 
     fun setPower(leftPower: Double, rightPower: Double) {
@@ -161,21 +152,13 @@ class MotorControlTestMode: LinearOpMode() {
         waitForStart()
 
         while (true) {
-            val x = gamepad1.left_stick_x;
-            val y = gamepad1.left_stick_y;
-            val theta = atan(y / x) * (180 / PI)
-            val magnitude = sqrt(x*x+y*y)
+            val drive = gamepad1.left_stick_y;
+            val turn = gamepad1.right_stick_x
 
-            telemetry.addData("X:", x)
-            telemetry.addData("Y:", y)
-            telemetry.addData("Theta:", theta)
-            telemetry.addData("Magnitude:", magnitude)
-            telemetry.update()
+            val leftPower = drive - turn;
+            val rightPower = drive + turn
 
-            val leftPower = thetaToPower(theta) * magnitude
-            val rightPower = thetaToPower(360 - theta) * magnitude
-
-            MovementSystem.setPower(leftPower, rightPower)
+            MovementSystem.setPower(leftPower.toDouble(), rightPower.toDouble())
 
             telemetry.addData("Left Power:", leftPower)
             telemetry.addData("Right Power:", rightPower)
