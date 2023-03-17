@@ -77,7 +77,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 @TeleOp(name="Vuforia Field Nav Webcam", group ="Concept")
 @Disabled
-public class ConceptVuforiaFieldNavigationWebcam extends LinearOpMode {
+public class
+
+ConceptVuforiaFieldNavigationWebcam extends LinearOpMode {
 
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
@@ -140,8 +142,7 @@ public class ConceptVuforiaFieldNavigationWebcam extends LinearOpMode {
         targets = this.vuforia.loadTrackablesFromAsset("PowerPlay");
 
         // For convenience, gather together all the trackable objects in one easily-iterable collection */
-        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
-        allTrackables.addAll(targets);
+        List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>(targets);
 
         /*
          * In order for localization to work, we need to tell the system where each target is on the field, and
