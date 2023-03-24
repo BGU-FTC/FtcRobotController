@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.Servo
+import com.qualcomm.robotcore.hardware.TouchSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import java.net.ServerSocket
 
@@ -75,19 +76,30 @@ object MovementSystem {
 }
 
 object LinearSlideSystem {
-    private lateinit var motor: DcMotor
-
+    lateinit var motor: DcMotor
+    private lateinit var limit: TouchSensor
     fun init(hardwareMap: HardwareMap) {
         motor = hardwareMap.get("linear_slide") as DcMotor
+        limit = hardwareMap.get("limit") as TouchSensor
+    }
+    fun applylimit (){
+        if (limit.isPressed)
+        {
+            motor.power = -1.0
+        }
+
     }
 
     fun set(power: Double) {
-        motor.power = power
+        if (!limit.isPressed){
+            motor.power = power
+        }
+
     }
 }
 
 object GrabberSystem {
-    private lateinit var servo: Servo
+    lateinit var servo: Servo
 
     fun init(hardwareMap: HardwareMap) {
         servo = hardwareMap.get("grabber") as Servo
@@ -115,7 +127,7 @@ class MotorTestMode: LinearOpMode() {
         telemetry.update()
         waitForStart()
 
-        while (true) {
+        while (opModeIsActive()) {
             telemetry.addData("Forward", "")
 
             telemetry.update()
@@ -149,12 +161,12 @@ class MotorControlTestMode: LinearOpMode() {
         telemetry.update()
         waitForStart()
 
-        while (true) {
+        while (opModeIsActive()) {
             val drive = gamepad1.left_stick_y
             val turn = gamepad1.right_stick_x
 
-            val leftPower = drive - turn;
-            val rightPower = drive + turn
+            val leftPower = (drive - turn)*3/4;
+            val rightPower = (drive + turn)*3/4
 
             MovementSystem.setPower(leftPower.toDouble(), rightPower.toDouble())
 
@@ -174,11 +186,14 @@ class LinearSlideControlTestMode: LinearOpMode() {
         telemetry.update()
         waitForStart()
 
-        while (true) {
+        while (opModeIsActive()) {
             val left = gamepad1.left_trigger.toDouble()
             val right = gamepad1.right_trigger.toDouble()
 
             LinearSlideSystem.set(left - right)
+            LinearSlideSystem.applylimit()
+            telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
+            telemetry.update()
         }
     }
 }
@@ -193,14 +208,56 @@ class GrabberServerTest: LinearOpMode() {
         telemetry.addData("Status", "Initialised")
         telemetry.update()
         waitForStart()
-
+        telemetry.addData("Status", "Running")
+        telemetry.update()
         val lastToggle = ElapsedTime()
 
-        while (true) {
-            if (gamepad1.x && lastToggle.seconds() > 1) {
+        while (opModeIsActive()) {
+            if (gamepad1.x && lastToggle.seconds() > 0.5) {
+                GrabberSystem.toggle()
+                telemetry.addData("Servo Pos", GrabberSystem.servo.position)
+                lastToggle.reset()
+            }
+            telemetry.update()
+        }
+    }
+}
+
+@TeleOp(name="Admit that the cyber students did something", group="Tests")//Admit that the cyber students did something
+class FullImplementation: LinearOpMode() {
+    override fun runOpMode() {
+        GrabberSystem.init(hardwareMap)
+        MovementSystem.init((hardwareMap))
+        GrabberSystem.open()
+        LinearSlideSystem.init(hardwareMap)
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+        waitForStart()
+        telemetry.addData("Status", "Running")
+        val lastToggle = ElapsedTime()
+        while (opModeIsActive()) {
+            val drive = gamepad1.left_stick_y
+            val turn = gamepad1.right_stick_x
+
+            val leftPower = (drive - turn)/2;
+            val rightPower = (drive + turn)/2
+
+            val left = gamepad1.left_trigger.toDouble()
+            val right = gamepad1.right_trigger.toDouble()
+
+            LinearSlideSystem.set(left - right)
+            LinearSlideSystem.applylimit()
+            MovementSystem.setPower(leftPower.toDouble(), rightPower.toDouble())
+
+            if (gamepad1.x && lastToggle.seconds() > 0.5) {
                 GrabberSystem.toggle()
                 lastToggle.reset()
             }
+            telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
+            telemetry.addData("Left Power:", leftPower)
+            telemetry.addData("Right Power:", rightPower)
+            telemetry.addData("Servo Pos", GrabberSystem.servo.position)
+            telemetry.update()
         }
     }
 }
