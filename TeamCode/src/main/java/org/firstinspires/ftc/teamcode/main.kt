@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.Servo
 import com.qualcomm.robotcore.hardware.TouchSensor
 import com.qualcomm.robotcore.util.ElapsedTime
 import java.net.ServerSocket
+import kotlin.math.*
 
 //val VUFORIA_KEY = "AekkZQf/////AAABmU/INTYknkiSokr0deyoE7tDO9U4n4OpK1sB67xojuUmkCjdRobDwLQmdRlNk/s8EUdYf1XlTIpkDruJVSbhm6r/LAMLjU4C4ntVOYp7stg+xAG4aoc8SaLEP4Dk+L3oDUGhPtWJWS8dB0z7XRd3ku4jDBvboBDPzR3PMgGWjedD72rr4FGk9fsuQQmbln+pHhx26g2HBttXuSBKy3vaOEuZeqKqIMA28GiPqnUflXn8rnWwWLMdcJZmMCZ7LKvZ6P7c2XtrWDTerpbCvUohB6Zpic+CoF5CjLfm5YroaZ0Rtwq6vzqm8EIJkoqgbrURWN59050Vcb7mS3oXy34PfH67BjtlihQQYv+oSbiBSY22"
 //
@@ -82,7 +83,7 @@ object LinearSlideSystem {
         motor = hardwareMap.get("linear_slide") as DcMotor
         limit = hardwareMap.get("limit") as TouchSensor
     }
-    fun applylimit (){
+    fun applyLimit (){
         if (limit.isPressed)
         {
             motor.power = -1.0
@@ -115,6 +116,27 @@ object GrabberSystem {
 
     fun toggle() {
         servo.position = 1.0 - servo.position
+    }
+}
+
+object MecanumMovementSystem {
+    lateinit var front_left: DcMotor
+    lateinit var front_right: DcMotor
+    lateinit var back_left: DcMotor
+    lateinit var back_right: DcMotor
+
+    fun init(hardwareMap: HardwareMap) {
+        front_left = hardwareMap.get("front_left") as DcMotor
+        front_right = hardwareMap.get("front_right") as DcMotor
+        back_left = hardwareMap.get("back_left") as DcMotor
+        back_right = hardwareMap.get("back_right") as DcMotor
+    }
+
+    fun setPowers(front_left: Double, front_right: Double, back_left: Double, back_right: Double) {
+        this.front_left.power = front_left
+        this.front_right.power = front_right
+        this.back_left.power = back_left
+        this.back_right.power = back_right
     }
 }
 
@@ -191,7 +213,7 @@ class LinearSlideControlTestMode: LinearOpMode() {
             val right = gamepad1.right_trigger.toDouble()
 
             LinearSlideSystem.set(left - right)
-            LinearSlideSystem.applylimit()
+            LinearSlideSystem.applyLimit()
             telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
             telemetry.update()
         }
@@ -227,7 +249,7 @@ class GrabberServerTest: LinearOpMode() {
 class FullImplementation: LinearOpMode() {
     override fun runOpMode() {
         GrabberSystem.init(hardwareMap)
-        MovementSystem.init((hardwareMap))
+        MovementSystem.init(hardwareMap)
         GrabberSystem.open()
         LinearSlideSystem.init(hardwareMap)
         telemetry.addData("Status", "Initialised")
@@ -246,7 +268,7 @@ class FullImplementation: LinearOpMode() {
             val right = gamepad1.right_trigger.toDouble()
 
             LinearSlideSystem.set(left - right)
-            LinearSlideSystem.applylimit()
+            LinearSlideSystem.applyLimit()
             MovementSystem.setPower(leftPower.toDouble(), rightPower.toDouble())
 
             if (gamepad1.x && lastToggle.seconds() > 0.5) {
@@ -258,6 +280,41 @@ class FullImplementation: LinearOpMode() {
             telemetry.addData("Right Power:", rightPower)
             telemetry.addData("Servo Pos", GrabberSystem.servo.position)
             telemetry.update()
+        }
+    }
+}
+
+@TeleOp(name="Mecanum Test", group = "Tests")
+class MecanumTest : LinearOpMode() {
+    override fun runOpMode() {
+        MecanumMovementSystem.init(hardwareMap)
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+
+        waitForStart()
+
+        while (opModeIsActive()) {
+            val forwardBackward = gamepad1.left_stick_y;
+            val leftRight = gamepad1.left_stick_x;
+            val magnitude = sqrt(forwardBackward*forwardBackward+leftRight*leftRight)
+            val theta = atan2(forwardBackward, leftRight)
+
+            val turn = gamepad1.right_stick_x
+
+            val frontLeft = magnitude * sin(theta + (PI/4)) + turn
+            val backLeft = magnitude * sin(theta - (PI/4)) + turn
+
+            val frontRight = magnitude * sin(theta - (PI/4)) - turn
+            val backRight = magnitude * sin(theta + (PI/4)) - turn
+
+            // Adding on turn may put the motors outside the [-1,1] range, needs to be scaled back down
+            val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
+            MecanumMovementSystem.setPowers(
+                frontLeft / scaleFactor,
+                frontRight / scaleFactor,
+                backLeft / scaleFactor,
+                backRight / scaleFactor
+            )
         }
     }
 }
