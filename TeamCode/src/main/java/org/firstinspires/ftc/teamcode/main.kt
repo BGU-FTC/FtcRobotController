@@ -127,9 +127,11 @@ object MecanumMovementSystem {
 
     fun init(hardwareMap: HardwareMap) {
         front_left = hardwareMap.get("front_left") as DcMotor
+        front_left.direction =DcMotorSimple.Direction.REVERSE
         front_right = hardwareMap.get("front_right") as DcMotor
         back_left = hardwareMap.get("back_left") as DcMotor
         back_right = hardwareMap.get("back_right") as DcMotor
+        back_right.direction =DcMotorSimple.Direction.REVERSE
     }
 
     fun setPowers(front_left: Double, front_right: Double, back_left: Double, back_right: Double) {
@@ -174,7 +176,7 @@ class MotorTestMode: LinearOpMode() {
     }
 }
 
-@TeleOp(name="Motor control test", group="Tests")
+/*@TeleOp(name="Motor control test", group="Tests")
 class MotorControlTestMode: LinearOpMode() {
     override fun runOpMode() {
         MovementSystem.init(hardwareMap)
@@ -283,7 +285,7 @@ class FullImplementation: LinearOpMode() {
         }
     }
 }
-
+*/
 @TeleOp(name="Mecanum Test", group = "Tests")
 class MecanumTest : LinearOpMode() {
     override fun runOpMode() {
@@ -308,7 +310,8 @@ class MecanumTest : LinearOpMode() {
             val backRight = magnitude * sin(theta + (PI/4)) - turn
 
             // Adding on turn may put the motors outside the [-1,1] range, needs to be scaled back down
-            val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
+            //val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
+            val scaleFactor = 1
             MecanumMovementSystem.setPowers(
                 frontLeft / scaleFactor,
                 frontRight / scaleFactor,
