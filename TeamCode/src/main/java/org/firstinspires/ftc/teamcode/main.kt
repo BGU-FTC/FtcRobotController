@@ -130,8 +130,8 @@ object MecanumMovementSystem {
         front_left.direction =DcMotorSimple.Direction.REVERSE
         front_right = hardwareMap.get("front_right") as DcMotor
         back_left = hardwareMap.get("back_left") as DcMotor
+        back_left.direction = DcMotorSimple.Direction.REVERSE
         back_right = hardwareMap.get("back_right") as DcMotor
-        back_right.direction =DcMotorSimple.Direction.REVERSE
     }
 
     fun setPowers(front_left: Double, front_right: Double, back_left: Double, back_right: Double) {
