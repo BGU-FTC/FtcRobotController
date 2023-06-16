@@ -78,24 +78,13 @@ object MovementSystem {
 
 object LinearSlideSystem {
     lateinit var motor: DcMotor
-    private lateinit var limit: TouchSensor
+
     fun init(hardwareMap: HardwareMap) {
         motor = hardwareMap.get("linear_slide") as DcMotor
-        limit = hardwareMap.get("limit") as TouchSensor
-    }
-    fun applyLimit (){
-        if (limit.isPressed)
-        {
-            motor.power = -1.0
-        }
-
     }
 
     fun set(power: Double) {
-        if (!limit.isPressed){
-            motor.power = power
-        }
-
+    	motor.power = power
     }
 }
 
@@ -142,7 +131,7 @@ object MecanumMovementSystem {
     }
 }
 
-@TeleOp(name="Motor assignment and direction test", group="Tests")
+/*@TeleOp(name="Motor assignment and direction test", group="Tests")
 class MotorTestMode: LinearOpMode() {
     override fun runOpMode() {
         MovementSystem.init(hardwareMap)
@@ -176,7 +165,7 @@ class MotorTestMode: LinearOpMode() {
     }
 }
 
-/*@TeleOp(name="Motor control test", group="Tests")
+@TeleOp(name="Motor control test", group="Tests")
 class MotorControlTestMode: LinearOpMode() {
     override fun runOpMode() {
         MovementSystem.init(hardwareMap)
@@ -197,27 +186,6 @@ class MotorControlTestMode: LinearOpMode() {
             telemetry.addData("Left Power:", leftPower)
             telemetry.addData("Right Power:", rightPower)
             telemetry.update();
-        }
-    }
-}
-
-@TeleOp(name="Linear slide test", group="Tests")
-class LinearSlideControlTestMode: LinearOpMode() {
-    override fun runOpMode() {
-        LinearSlideSystem.init(hardwareMap)
-
-        telemetry.addData("Status", "Initialised")
-        telemetry.update()
-        waitForStart()
-
-        while (opModeIsActive()) {
-            val left = gamepad1.left_trigger.toDouble()
-            val right = gamepad1.right_trigger.toDouble()
-
-            LinearSlideSystem.set(left - right)
-            LinearSlideSystem.applyLimit()
-            telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
-            telemetry.update()
         }
     }
 }
@@ -298,7 +266,7 @@ class MecanumTest : LinearOpMode() {
         while (opModeIsActive()) {
             val forwardBackward = gamepad1.left_stick_y;
             val leftRight = gamepad1.left_stick_x;
-            val magnitude = sqrt(forwardBackward*forwardBackward+leftRight*leftRight)
+            val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight)
             val theta = atan2(forwardBackward, leftRight)
 
             val turn = gamepad1.right_stick_x
@@ -308,7 +276,7 @@ class MecanumTest : LinearOpMode() {
 
             val frontRight = magnitude * sin(theta - (PI/4)) - turn
             val backRight = magnitude * sin(theta + (PI/4)) - turn
-
++`
             // Adding on turn may put the motors outside the [-1,1] range, needs to be scaled back down
             //val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
             val scaleFactor = 1
@@ -318,6 +286,27 @@ class MecanumTest : LinearOpMode() {
                 backLeft / scaleFactor,
                 backRight / scaleFactor
             )
+        }
+    }
+}
+
+@TeleOp(name="Linear slide test", group="Tests")
+class LinearSlideControlTestMode: LinearOpMode() {
+    override fun runOpMode() {
+        LinearSlideSystem.init(hardwareMap)
+
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+        waitForStart()
+
+        while (opModeIsActive()) {
+            val left = gamepad1.left_trigger.toDouble()
+            val right = gamepad1.right_trigger.toDouble()
+
+            LinearSlideSystem.set(left - right)
+            LinearSlideSystem.applyLimit()
+            telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
+            telemetry.update()
         }
     }
 }
