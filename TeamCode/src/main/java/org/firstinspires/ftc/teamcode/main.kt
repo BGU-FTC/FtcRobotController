@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -276,15 +277,14 @@ class MecanumTest : LinearOpMode() {
 
             val frontRight = magnitude * sin(theta - (PI/4)) - turn
             val backRight = magnitude * sin(theta + (PI/4)) - turn
-+`
+
             // Adding on turn may put the motors outside the [-1,1] range, needs to be scaled back down
             //val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
-            val scaleFactor = 1
             MecanumMovementSystem.setPowers(
-                frontLeft / scaleFactor,
-                frontRight / scaleFactor,
-                backLeft / scaleFactor,
-                backRight / scaleFactor
+                frontLeft,
+                frontRight,
+                backLeft,
+                backRight
             )
         }
     }
@@ -304,9 +304,42 @@ class LinearSlideControlTestMode: LinearOpMode() {
             val right = gamepad1.right_trigger.toDouble()
 
             LinearSlideSystem.set(left - right)
-            LinearSlideSystem.applyLimit()
             telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
             telemetry.update()
+        }
+    }
+}
+
+@Autonomous(name="Autonomous test", group="Tests")
+class AutonomousTestMode: LinearOpMode() {
+    override fun runOpMode() {
+        MecanumMovementSystem.init(hardwareMap);
+
+        waitForStart()
+
+        val time = ElapsedTime();
+
+        while (opModeIsActive()) {
+            if (time.seconds() < 1) {
+                val forwardBackward = 1.0;
+                val leftRight = 0.0;
+                val theta = atan2(forwardBackward, leftRight)
+
+                val frontLeft = sin(theta + (PI / 4))
+                val backLeft = sin(theta - (PI / 4))
+
+                val frontRight = sin(theta - (PI / 4))
+                val backRight = sin(theta + (PI / 4))
+
+                MecanumMovementSystem.setPowers(
+                    frontLeft,
+                    frontRight,
+                    backLeft,
+                    backRight
+                )
+            } else {
+                MecanumMovementSystem.setPowers(0.0, 0.0, 0.0, 0.0);
+            }
         }
     }
 }
