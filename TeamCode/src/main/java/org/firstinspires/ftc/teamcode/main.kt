@@ -1,3 +1,7 @@
+// Hey engineers ! This is the fist line of the file so I hope you read it! (I'll add some reminders around the file)
+// Don't worry about most of this code, consider is magic that just works (hopefully)
+// The code you want starts on line 317. I'll see you there!
+
 package org.firstinspires.ftc.teamcode
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
@@ -254,7 +258,7 @@ class FullImplementation: LinearOpMode() {
         }
     }
 }
-*/
+*/ // Lost, Engineers? Go to line 1.
 @TeleOp(name="Mecanum Test", group = "Tests")
 class MecanumTest : LinearOpMode() {
     override fun runOpMode() {
@@ -270,7 +274,7 @@ class MecanumTest : LinearOpMode() {
             val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight)
             val theta = atan2(forwardBackward, leftRight)
 
-            val turn = gamepad1.right_stick_x
+            val turn = gamepad1.right_stick_x // Lost, Engineers? Go to line 1.
 
             val frontLeft = magnitude * sin(theta + (PI/4)) + turn
             val backLeft = magnitude * sin(theta - (PI/4)) + turn
@@ -301,7 +305,7 @@ class LinearSlideControlTestMode: LinearOpMode() {
 
         while (opModeIsActive()) {
             val left = gamepad1.left_trigger.toDouble()
-            val right = gamepad1.right_trigger.toDouble()
+            val right = gamepad1.right_trigger.toDouble() // Lost, Engineers? Go to line 1.
 
             LinearSlideSystem.set(left - right)
             telemetry.addData("Slider Power", LinearSlideSystem.motor.power)
@@ -310,6 +314,8 @@ class LinearSlideControlTestMode: LinearOpMode() {
     }
 }
 
+// Hi again! the autonomous code is bellow, again theres more magic, so Ill direct you
+
 @Autonomous(name="Autonomous test", group="Tests")
 class AutonomousTestMode: LinearOpMode() {
     override fun runOpMode() {
@@ -317,12 +323,24 @@ class AutonomousTestMode: LinearOpMode() {
 
         waitForStart()
 
-        val time = ElapsedTime();
+        val time = ElapsedTime(); // This is the time that its been running for, don't touch this line please, or anything above it :)
+
+
+        val howLongToMoveFor = 1; // This is what you want, change the 1 to and other number, and it will move forward form that many seconds!
 
         while (opModeIsActive()) {
-            if (time.seconds() < 1) {
-                val forwardBackward = 1.0;
-                val leftRight = 0.0;
+            if (time.seconds() < howLongToMoveFor) {
+
+                val forwardBackward = 1.0; // this line says to move forward entirely
+                val leftRight = 0.0; // do not move to the left or the right
+                // the robot doesn't turn, only strafes, so there isn't a variable for turning
+                // This is the first batch of comments, and I'm still not 100% sure I get this code, so...
+                //unless I change this line probably don't change the 2 numbers above these comments
+
+                // Only 1 opmode for now, it moves forward, max power for some time (1 second)
+
+
+                // Everything below is magic Code! Please don't change it!
                 val theta = atan2(forwardBackward, leftRight)
 
                 val frontLeft = sin(theta + (PI / 4))
@@ -337,9 +355,11 @@ class AutonomousTestMode: LinearOpMode() {
                     backLeft,
                     backRight
                 )
+                // Still kina magic code, don't change
             } else {
-                MecanumMovementSystem.setPowers(0.0, 0.0, 0.0, 0.0);
+                MecanumMovementSystem.setPowers(0.0, 0.0, 0.0, 0.0); // Tells the robot to stop
             }
         }
     }
 }
+// You've scrolled too far!
