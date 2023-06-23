@@ -16,69 +16,10 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import java.net.ServerSocket
 import kotlin.math.*
 
-//val VUFORIA_KEY = "AekkZQf/////AAABmU/INTYknkiSokr0deyoE7tDO9U4n4OpK1sB67xojuUmkCjdRobDwLQmdRlNk/s8EUdYf1XlTIpkDruJVSbhm6r/LAMLjU4C4ntVOYp7stg+xAG4aoc8SaLEP4Dk+L3oDUGhPtWJWS8dB0z7XRd3ku4jDBvboBDPzR3PMgGWjedD72rr4FGk9fsuQQmbln+pHhx26g2HBttXuSBKy3vaOEuZeqKqIMA28GiPqnUflXn8rnWwWLMdcJZmMCZ7LKvZ6P7c2XtrWDTerpbCvUohB6Zpic+CoF5CjLfm5YroaZ0Rtwq6vzqm8EIJkoqgbrURWN59050Vcb7mS3oXy34PfH67BjtlihQQYv+oSbiBSY22"
-//
-//@TeleOp(name="PRESS THIS K THX", group="Tests")
-//class SuperEpicOpMode : LinearOpMode() {
-//    override fun runOpMode() {
-//        val time = ElapsedTime();
-//
-//        val webcam = hardwareMap.get("Webcam 1") as CameraName;
-//        val cameraMonitorViewID = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName);
-//        val vuforiaParameters = VuforiaLocalizer.Parameters(cameraMonitorViewID);
-//        vuforiaParameters.vuforiaLicenseKey = VUFORIA_KEY;
-//        vuforiaParameters.cameraName = webcam;
-//        vuforiaParameters.useExtendedTracking = false;
-//        val vuforia = ClassFactory.getInstance().createVuforia(vuforiaParameters);
-//        val targets = vuforia.loadTrackablesFromAsset("PowerPlay");
-//
-//        // TODO: Finish Kotlinification of ConceptVuforiaFieldNavigationWebcam.java
-//
-//        waitForStart();
-//        time.startTime()
-//        telemetry.addData("Status", "Initialized");
-//        telemetry.update();
-//
-//        val servo: Servo = hardwareMap.get("test") as Servo;
-//
-//        var position = 0.0;
-//        var delta = 0.001;
-//
-//        while (opModeIsActive()) {
-//            telemetry.addData("Time", time.seconds());
-//            telemetry.addData("Servo", servo.position);
-//            telemetry.addData("Position", position);
-//            telemetry.addData("Delta", delta);
-//            telemetry.update();
-//            servo.position = position;
-//            position += delta
-//            if (position > 1) {
-//                delta *= -1
-//                position = 1.0
-//            }
-//
-//            if (position < -1) {
-//                delta *= -1
-//                position = -1.0;
-//            }
-//        }
-//    }
-//}
-object MovementSystem {
-    lateinit var left: DcMotor
-    lateinit var right: DcMotor
-
-    fun init(hardwareMap: HardwareMap) {
-        left = hardwareMap.get("left_drive") as DcMotor;
-        right = hardwareMap.get("right_drive") as DcMotor
-
-        right.direction = DcMotorSimple.Direction.REVERSE
-    }
-
-    fun setPower(leftPower: Double, rightPower: Double) {
-        left.power = leftPower.coerceIn(-1.0, 1.0)
-        right.power = rightPower.coerceIn(-1.0, 1.0)
-    }
+// ENGINEER: Anything you want to change should be here, if not contact Jack
+object Constants {
+	const val TURN_POWER = 1.0 // 0.0 for no turn, 1.0 for max speed turning
+	val AUTO_MOVE_FORWARD_FOR = 1.0 // how long the autonomous phase will move forward for
 }
 
 object LinearSlideSystem {
@@ -114,87 +55,34 @@ object GrabberSystem {
 }
 
 object MecanumMovementSystem {
-    lateinit var front_left: DcMotor
-    lateinit var front_right: DcMotor
-    lateinit var back_left: DcMotor
-    lateinit var back_right: DcMotor
+    lateinit var frontLeft: DcMotor
+    lateinit var frontRight: DcMotor
+    lateinit var backLeft: DcMotor
+    lateinit var backRight: DcMotor
 
     fun init(hardwareMap: HardwareMap) {
-        front_left = hardwareMap.get("front_left") as DcMotor
-        front_left.direction =DcMotorSimple.Direction.REVERSE
-        front_right = hardwareMap.get("front_right") as DcMotor
-        back_left = hardwareMap.get("back_left") as DcMotor
-        back_left.direction = DcMotorSimple.Direction.REVERSE
-        back_right = hardwareMap.get("back_right") as DcMotor
+        frontLeft = hardwareMap.get("front_left") as DcMotor
+        frontLeft.direction =DcMotorSimple.Direction.REVERSE
+        frontRight = hardwareMap.get("front_right") as DcMotor
+        backLeft = hardwareMap.get("back_left") as DcMotor
+        backLeft.direction = DcMotorSimple.Direction.REVERSE
+        backRight = hardwareMap.get("back_right") as DcMotor
     }
 
-    fun setPowers(front_left: Double, front_right: Double, back_left: Double, back_right: Double) {
-        this.front_left.power = front_left
-        this.front_right.power = front_right
-        this.back_left.power = back_left
-        this.back_right.power = back_right
-    }
-}
+    fun set(forwardBackward: Double, leftRight: Double, turn: Double) {
+	val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight)
+        val theta = atan2(forwardBackward, leftRight)
 
-/*@TeleOp(name="Motor assignment and direction test", group="Tests")
-class MotorTestMode: LinearOpMode() {
-    override fun runOpMode() {
-        MovementSystem.init(hardwareMap)
-
-        telemetry.addData("Status", "Initialised")
-        telemetry.update()
-        waitForStart()
-
-        while (opModeIsActive()) {
-            telemetry.addData("Forward", "")
-
-            telemetry.update()
-            MovementSystem.setPower(1.0, 1.0)
-            sleep(3000)
-
-            telemetry.addData("Backward", "")
-            telemetry.update()
-            MovementSystem.setPower(-1.0, -1.0)
-            sleep(3000)
-
-            telemetry.addData("Twist Left", "")
-            telemetry.update()
-            MovementSystem.setPower(-1.0, 1.0)
-            sleep(3000)
-
-            telemetry.addData("Twist Right", "")
-            telemetry.update()
-            MovementSystem.setPower(1.0, -1.0)
-            sleep(3000)
-        }
+	val t = turn * Constants.TURN_POWER;
+	
+        this.frontLeft.power = magnitude * sin(theta + (PI/4)) + t
+        this.backLeft.power = magnitude * sin(theta - (PI/4)) + t
+        this.frontRight.power = magnitude * sin(theta - (PI/4)) - t
+        this.backRight.power = magnitude * sin(theta + (PI/4)) - t
     }
 }
 
-@TeleOp(name="Motor control test", group="Tests")
-class MotorControlTestMode: LinearOpMode() {
-    override fun runOpMode() {
-        MovementSystem.init(hardwareMap)
-
-        telemetry.addData("Status", "Initialised")
-        telemetry.update()
-        waitForStart()
-
-        while (opModeIsActive()) {
-            val drive = gamepad1.left_stick_y
-            val turn = gamepad1.right_stick_x
-
-            val leftPower = (drive - turn)*3/4;
-            val rightPower = (drive + turn)*3/4
-
-            MovementSystem.setPower(leftPower.toDouble(), rightPower.toDouble())
-
-            telemetry.addData("Left Power:", leftPower)
-            telemetry.addData("Right Power:", rightPower)
-            telemetry.update();
-        }
-    }
-}
-
+/*
 @TeleOp(name="Grabber servo test", group="Tests")
 class GrabberServerTest: LinearOpMode() {
     override fun runOpMode() {
@@ -269,27 +157,11 @@ class MecanumTest : LinearOpMode() {
         waitForStart()
 
         while (opModeIsActive()) {
-            val forwardBackward = gamepad1.left_stick_y;
-            val leftRight = gamepad1.left_stick_x;
-            val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight)
-            val theta = atan2(forwardBackward, leftRight)
+            val forwardBackward = gamepad1.left_stick_y.toDouble()
+            val leftRight = gamepad1.left_stick_x.toDouble()
+            val turn = gamepad1.right_stick_x.toDouble()
 
-            val turn = gamepad1.right_stick_x // Lost, Engineers? Go to line 1.
-
-            val frontLeft = magnitude * sin(theta + (PI/4)) + turn
-            val backLeft = magnitude * sin(theta - (PI/4)) + turn
-
-            val frontRight = magnitude * sin(theta - (PI/4)) - turn
-            val backRight = magnitude * sin(theta + (PI/4)) - turn
-
-            // Adding on turn may put the motors outside the [-1,1] range, needs to be scaled back down
-            //val scaleFactor = max(max(abs(frontLeft), abs(frontRight)), max(abs(backLeft), abs(backRight)))
-            MecanumMovementSystem.setPowers(
-                frontLeft,
-                frontRight,
-                backLeft,
-                backRight
-            )
+            MecanumMovementSystem.set(forwardBackward, leftRight, turn)
         }
     }
 }
@@ -325,41 +197,13 @@ class AutonomousTestMode: LinearOpMode() {
 
         val time = ElapsedTime(); // This is the time that its been running for, don't touch this line please, or anything above it :)
 
-
-        val howLongToMoveFor = 1; // This is what you want, change the 1 to and other number, and it will move forward form that many seconds!
-
-        while (opModeIsActive()) {
-            if (time.seconds() < howLongToMoveFor) {
-
-                val forwardBackward = 1.0; // this line says to move forward entirely
-                val leftRight = 0.0; // do not move to the left or the right
-                // the robot doesn't turn, only strafes, so there isn't a variable for turning
-                // This is the first batch of comments, and I'm still not 100% sure I get this code, so...
-                //unless I change this line probably don't change the 2 numbers above these comments
-
-                // Only 1 opmode for now, it moves forward, max power for some time (1 second)
-
-
-                // Everything below is magic Code! Please don't change it!
-                val theta = atan2(forwardBackward, leftRight)
-
-                val frontLeft = sin(theta + (PI / 4))
-                val backLeft = sin(theta - (PI / 4))
-
-                val frontRight = sin(theta - (PI / 4))
-                val backRight = sin(theta + (PI / 4))
-
-                MecanumMovementSystem.setPowers(
-                    frontLeft,
-                    frontRight,
-                    backLeft,
-                    backRight
-                )
-                // Still kina magic code, don't change
-            } else {
-                MecanumMovementSystem.setPowers(0.0, 0.0, 0.0, 0.0); // Tells the robot to stop
-            }
-        }
+	while (opModeIsActive()) {
+		if (time.seconds() < Constants.AUTO_MOVE_FORWARD_FOR) {
+			MecanumMovementSystem.set(1.0, 0.0, 0.0)
+		} else {
+			MecanumMovementSystem.set(0.0, 0.0, 0.0)
+		}
+	}
     }
 }
 // You've scrolled too far!
