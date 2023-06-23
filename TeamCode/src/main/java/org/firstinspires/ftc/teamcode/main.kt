@@ -20,6 +20,7 @@ import kotlin.math.*
 object Constants {
 	const val TURN_POWER = 1.0 // 0.0 for no turn, 1.0 for max speed turning
 	const val AUTO_MOVE_FORWARD_FOR = 1.0 // how long the autonomous phase will move forward for
+	const val SPEED = 1.0 // 0.0 for no movement, 1.0 for max speed forward/backwards
 }
 
 object LinearSlideSystem {
@@ -62,7 +63,7 @@ object MecanumMovementSystem {
 
     fun init(hardwareMap: HardwareMap) {
         frontLeft = hardwareMap.get("front_left") as DcMotor
-        frontLeft.direction =DcMotorSimple.Direction.REVERSE
+        frontLeft.direction = DcMotorSimple.Direction.REVERSE
         frontRight = hardwareMap.get("front_right") as DcMotor
         backLeft = hardwareMap.get("back_left") as DcMotor
         backLeft.direction = DcMotorSimple.Direction.REVERSE
@@ -70,7 +71,7 @@ object MecanumMovementSystem {
     }
 
     fun set(forwardBackward: Double, leftRight: Double, turn: Double) {
-	val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight)
+	val magnitude = sqrt(forwardBackward*forwardBackward + leftRight*leftRight) * Constants.SPEED
         val theta = atan2(forwardBackward, leftRight)
 
 	val t = turn * Constants.TURN_POWER;
