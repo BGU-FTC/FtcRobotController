@@ -19,7 +19,7 @@ import kotlin.math.*
 // ENGINEER: Anything you want to change should be here, if not contact Jack
 object Constants {
 	const val TURN_POWER = 1.0 // 0.0 for no turn, 1.0 for max speed turning
-	val AUTO_MOVE_FORWARD_FOR = 1.0 // how long the autonomous phase will move forward for
+	const val AUTO_MOVE_FORWARD_FOR = 1.0 // how long the autonomous phase will move forward for
 }
 
 object LinearSlideSystem {
@@ -207,3 +207,32 @@ class AutonomousTestMode: LinearOpMode() {
     }
 }
 // You've scrolled too far!
+
+@TeleOp(name="Full system test", group="Tests")
+class FullSystemTestMode: LinearOpMode() {
+    override fun runOpMode() {
+        LinearSlideSystem.init(hardwareMap);
+        GrabberSystem.init(hardwareMap);
+        MecanumMovementSystem.init(hardwareMap);
+
+        telemetry.addData("Status", "Initialised")
+        telemetry.update()
+        waitForStart()
+
+        while (opModeIsActive()) {
+            LinearSlideSystem.set((gamepad1.left_trigger - gamepad1.right_trigger).toDouble())
+            telemetry.update()
+
+            val forwardBackward = gamepad1.left_stick_y.toDouble()
+            val leftRight = gamepad1.left_stick_x.toDouble()
+            val turn = gamepad1.right_stick_x.toDouble()
+	        MecanumMovementSystem.set(forwardBackward, leftRight, turn)
+
+            if (gamepad1.left_bumper) {
+                GrabberSystem.close();
+            } else if (gamepad1.right_bumper) {
+                GrabberSystem.open();
+            }
+        }
+    }
+}
